@@ -1,0 +1,4 @@
+*.exe
+
+# Auto-managed large files (>5MB)
+exar-webui/node_modules/@esbuild/win32-x64/esbuild.exe
