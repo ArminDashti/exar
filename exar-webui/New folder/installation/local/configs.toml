@@ -1,0 +1,11 @@
+[server]
+address = ""
+username = "ubuntu"
+password = "CqEfw"
+
+
+[database]
+server = ""
+database = "NetChecker"
+username = "NetChecker"
+password = "NetChecker"

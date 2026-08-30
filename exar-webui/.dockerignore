@@ -1,0 +1,25 @@
+.git
+.cursor
+.armin
+.deploy
+.antigravity
+.codex
+.devin
+.grok
+.github
+New folder
+_tmp_migrate_check
+node_modules
+frontend/node_modules
+data
+*.db
+bin
+dist
+logs
+expenses-server.exe
+*.md
+openapi.yaml
+endpoints.md
+installation
+.vscode
+.idea

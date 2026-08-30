@@ -1,0 +1,47 @@
+# Standalone API stack. Scripts under .armin/docker-scripts/ drive IMAGE_TAG / ports.
+# Host publish is optional: when publish_port is set, scripts also load docker-compose.publish.yml.
+name: exar
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${POSTGRES_CONTAINER_NAME:-exar-postgres}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-exar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-exar}
+      POSTGRES_DB: ${POSTGRES_DB:-exar}
+    volumes:
+      - exar-postgres-data:/var/lib/postgresql/data
+    networks:
+      - exar-net
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-exar} -d ${POSTGRES_DB:-exar}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: ${IMAGE_TAG:-exar-api:latest}
+    container_name: ${API_CONTAINER_NAME:-exar}
+    expose:
+      - "${INTERNAL_PORT:-8080}"
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-exar}:${POSTGRES_PASSWORD:-exar}@postgres:5432/${POSTGRES_DB:-exar}?sslmode=disable
+      ADDR: ":${INTERNAL_PORT:-8080}"
+    networks:
+      - exar-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+networks:
+  exar-net:
+    name: ${DOCKER_NETWORK:-exar-net}
+    external: true
+
+volumes:
+  exar-postgres-data:

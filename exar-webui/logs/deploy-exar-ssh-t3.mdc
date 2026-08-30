@@ -1,0 +1,24 @@
+# Deploy exar via ssh t3
+
+**Timestamp:** 2026-07-28
+
+## Task
+Fix remote Docker deploy target and deploy `exar` to Irancell-T3 (`ssh t3`).
+
+## Commands
+- Inspected `~/.ssh/config` Host `t3` and verified `ssh t3`
+- Fixed `.armin/docker-scripts/run-on-docker-server.yaml`: `ssh: "ssh t3 -p 80"` → `ssh: "ssh t3"`
+- Built linux binary: `CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/server ./cmd/server`
+- Ran `.\.armin\docker-scripts\run-on-docker-server.ps1`
+
+## Important outputs
+- Wrong SSH port 80 caused deploy failure (HTTP/HAProxy, not SSH)
+- `bin/server` was missing; rebuilt before image build
+- Remote compose up succeeded on `/home/cloud-admin/docker/exar` using network `t3-net`
+
+## Result
+Deploy succeeded. Containers `exar-webui` and `exar-api` started on `t3`.
+
+## Warnings
+- Do not set `ssh` to `-p 80`; SSH uses port 22 via Host `t3` in `~/.ssh/config`
+- Dockerfile expects prebuilt `bin/server` (linux/amd64) and `dist/`

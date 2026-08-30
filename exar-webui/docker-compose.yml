@@ -1,0 +1,43 @@
+name: exar
+
+services:
+  exar-webui:
+    image: ${IMAGE_TAG:-exar-web:latest}
+    container_name: exar-webui
+    environment:
+      ADDR: ":80"
+      DATABASE_PATH: /app/data/expenses.db
+      STATIC_DIR: /app/static
+    expose:
+      - "80"
+    volumes:
+      - exar-data:/app/data
+    networks:
+      - appnet
+    restart: "no"
+
+  exar-api:
+    image: ${IMAGE_TAG:-exar-web:latest}
+    container_name: exar-api
+    environment:
+      ADDR: ":${INTERNAL_PORT:-8080}"
+      DATABASE_PATH: /app/data/expenses.db
+      STATIC_DIR: /app/static
+    expose:
+      - "${INTERNAL_PORT:-8080}"
+    ports:
+      - "${PUBLISH_PORT:-8084}:${INTERNAL_PORT:-8080}"
+    volumes:
+      - exar-data:/app/data
+    networks:
+      - appnet
+    restart: "no"
+
+networks:
+  appnet:
+    name: ${DOCKER_NETWORK:-exar-net}
+    external: true
+
+volumes:
+  exar-data:
+    name: exar-data

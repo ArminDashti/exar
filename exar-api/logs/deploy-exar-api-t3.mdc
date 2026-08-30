@@ -1,0 +1,37 @@
+# Deploy exar-api to t3
+
+**Timestamp:** 2026-07-28 22:09 +03:30  
+**Host:** ssh t3 (t3-new / 2.144.27.74)
+
+## Task
+
+Fix .armin/docker-scripts/run-on-docker-server.ps1 so remote deploy works with `ssh t3`.
+
+## Root cause
+
+With `delete_image: yes` and `build_image_on: local`, the script uploaded and loaded the image, then removed that same image before `compose up`. Compose then tried to pull/build, failed (no remote Dockerfile).
+
+## Fix
+
+1. Reorder flow: sync compose → teardown (down + image rm) → build/upload/load → `up -d`
+2. Local mode: `compose up -d --no-build`
+3. YAML: `ssh: "ssh t3"`
+
+## Commands
+
+- `powershell -File .\.armin\docker-scripts\run-on-docker-server.ps1`
+- Remote checks via `ssh t3`
+
+## Result
+
+Deploy succeeded:
+
+- Container `exar` (exar-api:latest) Up
+- Container `exar-postgres` (postgres:16-alpine) healthy
+- Network `exar-net`
+- Volume dir `/home/cloud-admin/docker/exar-api`
+
+## Warnings
+
+- Empty `publish_port` still creates a host port mapping (ephemeral); compose long-syntax `published: ""` does not omit ports.
+- Pre-existing `exar-api` / `exar-webui` (exar-web:latest) stack on the server is separate from this compose project.

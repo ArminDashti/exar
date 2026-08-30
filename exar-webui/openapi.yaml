@@ -1,0 +1,794 @@
+openapi: 3.0.3
+info:
+  title: Daily Expenses API
+  description: |
+    REST API for the Daily Expenses application. Tracks shared spending for two
+    people (Armin and Ramin), shops, catalog items, and invoices with line items.
+
+    All monetary values are in USD. Dates in the API use ISO 8601 Gregorian
+    calendar dates (`YYYY-MM-DD`). The web UI displays Jalali (Persian) dates.
+  version: 1.0.0
+  contact:
+    name: Daily Expenses
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local development (default `ADDR=:8080`)
+  - url: /api
+    description: Same host as the web app (relative)
+
+tags:
+  - name: Persons
+    description: Fixed list of two people who can pay expenses (Armin, Ramin)
+  - name: Shops
+    description: Store and vendor names
+  - name: Items
+    description: Catalog of item names for expense autocomplete
+  - name: Stats
+    description: Aggregated spend totals
+  - name: Invoices
+    description: Expense records with line items
+
+paths:
+  /persons:
+    get:
+      tags: [Persons]
+      summary: List persons
+      description: Returns the two fixed persons (Armin and Ramin).
+      operationId: listPersons
+      responses:
+        "200":
+          description: List of persons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Person"
+              example:
+                - id: 1
+                  name: Armin
+                - id: 2
+                  name: Ramin
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /shops:
+    get:
+      tags: [Shops]
+      summary: List shops
+      description: Returns all shops ordered by name.
+      operationId: listShops
+      responses:
+        "200":
+          description: List of shops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Shop"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags: [Shops]
+      summary: Create shop
+      description: Adds a new shop. Names must be unique.
+      operationId: createShop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShopRequest"
+            example:
+              name: Grocery Store
+      responses:
+        "201":
+          description: Shop created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Shop name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: shop already exists
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /shops/{id}:
+    put:
+      tags: [Shops]
+      summary: Update shop
+      description: Renames a shop by ID. Names must be unique.
+      operationId: updateShop
+      parameters:
+        - $ref: "#/components/parameters/ShopId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateShopRequest"
+            example:
+              name: Corner Market
+      responses:
+        "200":
+          description: Shop updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shop"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Shop name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: shop already exists
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [Shops]
+      summary: Delete shop
+      description: |
+        Deletes a shop by ID. Fails with 409 if any invoice references the shop.
+      operationId: deleteShop
+      parameters:
+        - $ref: "#/components/parameters/ShopId"
+      responses:
+        "204":
+          description: Shop deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Shop is referenced by one or more invoices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: shop is used by invoices
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /items:
+    get:
+      tags: [Items]
+      summary: List or search items
+      description: |
+        Returns catalog items ordered by name. When `q` is provided with fewer
+        than 3 characters, an empty array is returned. With 3+ characters,
+        results are filtered with a case-insensitive substring match.
+      operationId: listItems
+      parameters:
+        - name: q
+          in: query
+          description: Search query (min 3 characters to filter)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Item"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags: [Items]
+      summary: Create item
+      description: Adds a catalog item name. Names must be unique.
+      operationId: createItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItemRequest"
+            example:
+              name: Milk
+      responses:
+        "201":
+          description: Item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          description: Item name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: item already exists
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /items/{id}:
+    put:
+      tags: [Items]
+      summary: Update item
+      description: Renames a catalog item by ID. Names must be unique.
+      operationId: updateItem
+      parameters:
+        - $ref: "#/components/parameters/ItemId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItemRequest"
+            example:
+              name: Organic Milk
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Item"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Item name already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: item already exists
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [Items]
+      summary: Delete item
+      description: Deletes a catalog item by ID. Always allowed (no invoice FK).
+      operationId: deleteItem
+      parameters:
+        - $ref: "#/components/parameters/ItemId"
+      responses:
+        "204":
+          description: Item deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /stats:
+    get:
+      tags: [Stats]
+      summary: Get spend statistics
+      description: |
+        Returns total spend, share-weighted totals by person, and totals by shop.
+        Optional Gregorian date range filters apply to all aggregates. Person
+        totals use `invoice_total * share` for each person.
+      operationId: getStats
+      parameters:
+        - name: from_date
+          in: query
+          description: Include invoices on or after this date (`YYYY-MM-DD`)
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: Include invoices on or before this date (`YYYY-MM-DD`)
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /invoices:
+    get:
+      tags: [Invoices]
+      summary: List invoices
+      description: |
+        Returns invoices with line items, ordered by date descending then ID
+        descending. Optional filters narrow results by person and/or date range.
+      operationId: listInvoices
+      parameters:
+        - name: person_id
+          in: query
+          description: Filter by person ID (1 or 2)
+          schema:
+            type: integer
+            enum: [1, 2]
+        - name: from_date
+          in: query
+          description: Include invoices on or after this date (`YYYY-MM-DD`)
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: Include invoices on or before this date (`YYYY-MM-DD`)
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: List of invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    post:
+      tags: [Invoices]
+      summary: Create invoice
+      description: |
+        Creates an invoice, its line items, and per-person shares in a single
+        transaction. The invoice total is the sum of each item `amount`.
+        Quantity is always stored as `1`. Shares must include every person and
+        sum to 1 (within 0.001).
+      operationId: createInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceRequest"
+            example:
+              person_id: 1
+              shop_id: 3
+              date: "2026-06-19"
+              items:
+                - description: Milk
+                  amount: 4.99
+                - description: Bread
+                  amount: 3.50
+              shares:
+                - person_id: 1
+                  share: 0.3
+                - person_id: 2
+                  share: 0.7
+      responses:
+        "201":
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Invoice"
+                  - type: object
+                    description: Minimal response when full invoice cannot be loaded
+                    properties:
+                      id:
+                        type: integer
+                    required: [id]
+        "400":
+          description: Validation error or invalid person/shop/shares
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                invalidPerson:
+                  value:
+                    error: person_id must be 1 or 2
+                invalidShop:
+                  value:
+                    error: invalid shop_id
+                invalidShares:
+                  value:
+                    error: shares must sum to 1
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /invoices/{id}:
+    get:
+      tags: [Invoices]
+      summary: Get invoice
+      description: Returns a single invoice with its line items and shares.
+      operationId: getInvoice
+      parameters:
+        - $ref: "#/components/parameters/InvoiceId"
+      responses:
+        "200":
+          description: Invoice details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags: [Invoices]
+      summary: Update invoice
+      description: |
+        Replaces payer, shop, date, line items, and shares for an invoice in a
+        single transaction. Same validation as create.
+      operationId: updateInvoice
+      parameters:
+        - $ref: "#/components/parameters/InvoiceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvoiceRequest"
+      responses:
+        "200":
+          description: Invoice updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags: [Invoices]
+      summary: Delete invoice
+      description: Deletes an invoice and all of its line items and shares.
+      operationId: deleteInvoice
+      parameters:
+        - $ref: "#/components/parameters/InvoiceId"
+      responses:
+        "204":
+          description: Invoice deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  parameters:
+    ShopId:
+      name: id
+      in: path
+      required: true
+      description: Shop ID
+      schema:
+        type: integer
+        minimum: 1
+
+    ItemId:
+      name: id
+      in: path
+      required: true
+      description: Item ID
+      schema:
+        type: integer
+        minimum: 1
+
+    InvoiceId:
+      name: id
+      in: path
+      required: true
+      description: Invoice ID
+      schema:
+        type: integer
+        minimum: 1
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    Person:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Person ID (1 or 2)
+          enum: [1, 2]
+        name:
+          type: string
+      required: [id, name]
+
+    Shop:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required: [id, name]
+
+    CreateShopRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required: [name]
+
+    UpdateShopRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required: [name]
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required: [id, name]
+
+    CreateItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required: [name]
+
+    UpdateItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required: [name]
+
+    PersonTotal:
+      type: object
+      properties:
+        person_id:
+          type: integer
+          enum: [1, 2]
+        person_name:
+          type: string
+        total:
+          type: number
+          format: double
+      required: [person_id, person_name, total]
+
+    ShopTotal:
+      type: object
+      properties:
+        shop_id:
+          type: integer
+        shop_name:
+          type: string
+        total:
+          type: number
+          format: double
+      required: [shop_id, shop_name, total]
+
+    Stats:
+      type: object
+      properties:
+        total:
+          type: number
+          format: double
+        by_person:
+          type: array
+          items:
+            $ref: "#/components/schemas/PersonTotal"
+        by_shop:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShopTotal"
+      required: [total, by_person, by_shop]
+
+    InvoiceItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Present on stored items; omitted in create requests
+        invoice_id:
+          type: integer
+          description: Present on stored items; omitted in create requests
+        description:
+          type: string
+        amount:
+          type: number
+          format: double
+          description: Unit price in USD
+        quantity:
+          type: number
+          format: double
+          description: Always 1 for new invoices (units not used)
+          default: 1
+      required: [description, amount]
+
+    InvoiceShare:
+      type: object
+      properties:
+        person_id:
+          type: integer
+          enum: [1, 2]
+        person_name:
+          type: string
+        share:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+      required: [person_id, share]
+
+    InvoiceShareInput:
+      type: object
+      properties:
+        person_id:
+          type: integer
+          enum: [1, 2]
+        share:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+      required: [person_id, share]
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        person_id:
+          type: integer
+          enum: [1, 2]
+          description: Who paid the bill
+        shop_id:
+          type: integer
+        date:
+          type: string
+          format: date
+        total:
+          type: number
+          format: double
+          description: Sum of line item amounts
+        person_name:
+          type: string
+          description: Joined person name (read-only)
+        shop_name:
+          type: string
+          description: Joined shop name (read-only)
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceItem"
+        shares:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceShare"
+      required: [person_id, shop_id, date, total, items, shares]
+
+    CreateInvoiceItem:
+      type: object
+      properties:
+        description:
+          type: string
+          minLength: 1
+        amount:
+          type: number
+          format: double
+        quantity:
+          type: number
+          format: double
+          description: Ignored; server always stores 1
+          default: 1
+      required: [description, amount]
+
+    CreateInvoiceRequest:
+      type: object
+      properties:
+        person_id:
+          type: integer
+          enum: [1, 2]
+        shop_id:
+          type: integer
+          minimum: 1
+        date:
+          type: string
+          format: date
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreateInvoiceItem"
+        shares:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/InvoiceShareInput"
+      required: [person_id, shop_id, date, items, shares]
+
+    UpdateInvoiceRequest:
+      type: object
+      properties:
+        person_id:
+          type: integer
+          enum: [1, 2]
+        shop_id:
+          type: integer
+          minimum: 1
+        date:
+          type: string
+          format: date
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreateInvoiceItem"
+        shares:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/InvoiceShareInput"
+      required: [person_id, shop_id, date, items, shares]
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    InternalServerError:
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

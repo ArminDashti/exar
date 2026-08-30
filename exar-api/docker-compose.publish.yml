@@ -1,0 +1,7 @@
+# Optional host publish overlay. Loaded by deploy scripts only when publish_port is set.
+services:
+  api:
+    ports:
+      - target: ${INTERNAL_PORT:-8080}
+        published: ${PUBLISH_PORT}
+        protocol: tcp

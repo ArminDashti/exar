@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gitattributes
+.cursor
+.deploy
+**/.git
+**/.cursor
+**/node_modules
+**/data
+**/*.db
+**/.deploy
+docs/suggestion
+docs/potentional-bugs
