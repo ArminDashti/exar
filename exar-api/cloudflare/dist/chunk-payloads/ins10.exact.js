@@ -1,0 +1,9 @@
+async () => {
+  const i = 10;
+  const c = "IGF3YWl0IG4ucHJlcGFyZSgiVVBEQVRFIGV4cGVuc2VzIFNFVCBwZXJzb25faWQgPSA/LCBzaG9wX2lkID0gPywgaXRlbV9pZCA9ID8sIGRhdGUgPSA/LCBhbW91bnQgPSA/IFdIRVJFIGlkID0gPyIpLmJpbmQocCxjLHcsZix1LGUpLnJ1bigpLGF3YWl0IG4ucHJlcGFyZSgiREVMRVRFIEZST00gZXhwZW5zZV9zaGFyZXMgV0hFUkUgZXhwZW5zZV9pZCA9ID8iKS5iaW5kKGUpLnJ1bigpLGF3YWl0IHgobixlLEUpLHIoYXdhaXQgVChuLGUpfHx7aWQ6ZX0pfWlmKGQ9PT0iREVMRVRFIilyZXR1cm4gYXdhaXQgbi5wcmVwYXJlKCJERUxFVEUgRlJPTSBleHBlbnNlX3NoYXJlcyBXSEVSRSBleHBlbnNlX2lkID0gPyIpLmJpbmQoZSkucnVuKCksKGF3YWl0IG4ucHJlcGFyZSgiREVMRVRFIEZST00gZXhwZW5zZXMgV0hFUkUgaWQgPSA/IikuYmluZChlKS5ydW4oKSkubWV0YS5jaGFuZ2VzP25ldyBSZXNwb25zZShudWxsLHtzdGF0dXM6MjA0fSk6cih7ZXJyb3I6ImV4cGVuc2Ugbm90IGZvdW5kIn0sNDA0KX1yZXR1cm4gcih7ZXJyb3I6Im5vdCBmb3VuZCJ9LDQwNCl9Cg==";
+  return cloudflare.request({
+    method: "POST",
+    path: "/accounts/" + accountId + "/d1/database/9bd95dca-6c2f-439a-a4d7-53c44a82118b/query",
+    body: { sql: "INSERT INTO _deploy_chunks (i, c) VALUES (?, ?)", params: [i, c] }
+  });
+}

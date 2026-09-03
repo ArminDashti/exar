@@ -4,7 +4,8 @@ function withBase(path) {
   return `${base}${path.startsWith('/') ? path : `/${path}`}`
 }
 
-const API = withBase('/api')
+const apiOrigin = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const API = apiOrigin ? `${apiOrigin}/api` : withBase('/api')
 
 async function request(path, options = {}) {
   const res = await fetch(`${API}${path}`, {

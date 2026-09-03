@@ -1,0 +1,7 @@
+sh({person_id:d.person_id,person_name:d.person_name,share:d.share}),a.set(d.expense_id,h)}return a}async function T(s,o){const a=await s.prepare(`SELECT e.id, e.person_id, p.name AS person_name, e.shop_id, s.name AS shop_name,
+              e.item_id, i.name AS name, e.date, e.amount
+       FROM expenses e
+       JOIN persons p ON p.id = e.person_id
+       JOIN shops s ON s.id = e.shop_id
+       JOIN items i ON i.id = e.item_id
+       WHERE e.id = ?`).bind(o).first();if(!a)return null;const i=await C(s,[o]);return{...a,shares:i.get(o)||[]}}async function D(s,o){const a=new URL(s.url),i=a.pathname.replace(/\/$/,"")||"/",n=o.DB,d=s.method;if(d==="GET"&&i==="/api/health")return r({status:"ok"});if(d==="GET"&&i==="/api/persons"){const e=await n.prepare("SELECT id, name FROM persons ORDER BY id").all();return r(e.results||[])}if(i==="/api/shops"){if(d==="GET"){const e=(a.searchParams.get("q")||"").trim();if(e&&[...e].length<3)return r([]);const t=e?await n.prepare("SELECT id, name FROM shops WHERE name LIKE ? COLLATE NOCASE ORDER BY name").bind(`%${e}%`).all():await n.prepare("SELECT id, name FROM shops ORDER BY name").all();return r(t.results||[])}if(d==="POST"){const e=((await s.json()).name||"").trim();if(!e)return r({error:"name is required"},400);try{const t=await n.prepare("INSERT INTO shops (name) VALUES (?)").bind(e).run();return r({id:Number(t.meta.last_row_id),name:e},201)}catch(t){return O(t)?r({error:"shop already exists"},409):r({error:"failed to create shop"},500)}}}

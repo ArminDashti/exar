@@ -1,0 +1,38 @@
+{
+  "/assets/index-DDBWQw8w.css": {
+    "hash": "3b7eff9aa62221a4c6f845d5707130c6",
+    "size": 13013
+  },
+  "/assets/index-pSVhUj3N.js": {
+    "hash": "0cd7f4d2b9ab64a8fcef9811f2c0e089",
+    "size": 133290
+  },
+  "/assets/workbox-window.prod.es5-BBnX5xw4.js": {
+    "hash": "cadd21be4a88598a4dec91a26a025df0",
+    "size": 5748
+  },
+  "/favicon.svg": {
+    "hash": "31cdd84ecd0666a0a3af59c82854a649",
+    "size": 296
+  },
+  "/index.html": {
+    "hash": "1ba9baab26bf70bc8e64f79d1b48cc13",
+    "size": 729
+  },
+  "/manifest.webmanifest": {
+    "hash": "e3fe4b1fd09d6edc276ff10f404361ed",
+    "size": 411
+  },
+  "/pwa-192x192.png": {
+    "hash": "676f49b19943d6e580883ec3583e2bf4",
+    "size": 786
+  },
+  "/pwa-512x512.png": {
+    "hash": "0948aa159f020d5ccb00a6ea61a89869",
+    "size": 3359
+  },
+  "/sw.js": {
+    "hash": "792ce2deb0500902aca48a79b2bbc4c1",
+    "size": 18010
+  }
+}

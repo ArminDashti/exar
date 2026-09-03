@@ -1,0 +1,8 @@
+hop_id, s.name AS shop_name,
+                  e.item_id, i.name AS name, e.date, e.amount
+           FROM expenses e
+           JOIN persons p ON p.id = e.person_id
+           JOIN shops s ON s.id = e.shop_id
+           JOIN items i ON i.id = e.item_id
+           WHERE ${e.join(" AND ")}
+           ORDER BY e.date DESC, e.id DESC`).bind(...t).all()).results||[]).map(m=>({...m,shares:[]})),E=await C(n,u.map(m=>m.id));for(const m of u)m.shares=E.get(m.id)||[];return r(u)}if(d==="POST"){const e=await s.json(),t=Number(e.person_id),p=Number(e.shop_id),c=(e.date||"").trim(),f=e.items||[];if(t!==1&&t!==2)return r({error:"person_id must be 1 or 2"},400);if(!c)return r({error:"date is required"},400);if(!f.length)return r({error:"items is required"},400);for(const E of f){const m=N(E.shares||[]);if(m)return r({error:m},400);if(!(E.name||"").trim())return r({error:"item name is required"},400);const _=b(Number(E.amount));if(_)return r({error:_},400)}if(!await n.prepare("SELECT id FROM shops WHERE id = ?").bind(p).first())return r({error:"invalid shop_id"},400);const l=[];for(const E of f){const m=(E.name||"").trim(),_=await L(n,m),w=await n.prepare("INSERT INTO expenses (person_id, shop_id, item_id, date, amount) VALUES (?, ?, ?, ?, ?)").bind(t,p,_,c,Number(E.amount)).run(),S=Number(w.meta.last_row_id);await x(n,S,E.shares||[]),l.push(S)}const u=[];for(const E of l){const m=await T(n,E);m&&u.push(m)}return r(u,201)}}if(h=i.match(/^\/api\/expenses\/(\d+)$/),h){const e=Number(h[1]);if(

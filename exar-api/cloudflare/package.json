@@ -1,0 +1,20 @@
+{
+  "name": "exar-api-cloudflare",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "d1:migrate:local": "wrangler d1 migrations apply exar --local",
+    "d1:migrate:remote": "wrangler d1 migrations apply exar --remote"
+  },
+  "dependencies": {
+    "hono": "^4.7.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260831.1",
+    "typescript": "^5.8.2",
+    "wrangler": "^4.14.0"
+  }
+}

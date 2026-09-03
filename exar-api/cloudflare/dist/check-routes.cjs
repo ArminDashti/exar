@@ -1,0 +1,7 @@
+const fs = require('fs')
+const src = fs.readFileSync(__dirname + '/native-worker.min.js', 'utf8')
+const i = src.indexOf('/api/shops')
+console.log('idx', i)
+console.log(src.slice(i - 80, i + 200))
+console.log('md5', require('crypto').createHash('md5').update(src).digest('hex'))
+console.log('len', src.length)
