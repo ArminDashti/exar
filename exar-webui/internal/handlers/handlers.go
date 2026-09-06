@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/armin/expenses/backend/internal/auth"
 	"github.com/armin/expenses/backend/internal/database"
 	"github.com/armin/expenses/backend/internal/jalali"
 	"github.com/armin/expenses/backend/internal/models"
@@ -21,6 +22,26 @@ type Handler struct {
 
 func New(db *database.DB) *Handler {
 	return &Handler{db: db}
+}
+
+func (h *Handler) Login(c *gin.Context) {
+	var req models.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, personID, err := auth.Authenticate(req.Username, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.LoginResponse{
+		Token:    token,
+		Username: req.Username,
+		PersonID: personID,
+	})
 }
 
 func (h *Handler) ListPersons(c *gin.Context) {

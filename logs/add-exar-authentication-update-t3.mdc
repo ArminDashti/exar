@@ -1,0 +1,21 @@
+﻿# Add Exar Authentication And Update T3 Containers
+
+- Timestamp: 2026-09-06 ~08:50 UTC+3:30
+- Host: t3-new (2.144.27.124) via SSH port 443
+- Result: success
+
+## Commands / actions
+- Added JWT auth to exar-webui (login route, middleware, Login UI)
+- Updated credentials for armin / ramin in webui + api
+- Restored missing exar-api cmd/server/main.go
+- Deployed exar-web:latest and exar-api:latest via run-on-docker-server.ps1
+- Restored API compose DATABASE_URL to exar-pgsql
+
+## Verification
+- Web: unauthenticated /api/persons -> 401
+- Web login armin + ramin -> JWT OK; authenticated /api/persons -> 200
+- API login armin + ramin on /exar/api/v1/auth/login -> JWT OK
+
+## Warnings
+- Cloudflare 1010 when curling public hostname from the server itself (expected); verified via docker exec
+- Temporary empty exar-postgres from first API compose was removed; production data remains on exar-pgsql

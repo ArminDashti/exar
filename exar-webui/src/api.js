@@ -1,3 +1,5 @@
+import { clearSession, getToken } from './auth'
+
 function withBase(path) {
   const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
   if (!base || base === '/') return path
@@ -8,10 +10,25 @@ const apiOrigin = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
 const API = apiOrigin ? `${apiOrigin}/api` : withBase('/api')
 
 async function request(path, options = {}) {
+  const headers = { 'Content-Type': 'application/json', ...options.headers }
+  const token = getToken()
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
   const res = await fetch(`${API}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
     ...options,
+    headers,
   })
+  if (res.status === 401 && path !== '/auth/login') {
+    clearSession()
+    const { router } = await import('./router')
+    const redirect = router.currentRoute.value.fullPath
+    if (router.currentRoute.value.name !== 'login') {
+      await router.replace({ name: 'login', query: { redirect } })
+    }
+    throw new Error('Please sign in again')
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.error || res.statusText)
@@ -21,6 +38,11 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  login: (username, password) =>
+    request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    }),
   getPersons: () => request('/persons'),
   getShops: () => request('/shops'),
   searchShops: (q) => request(`/shops?q=${encodeURIComponent(q)}`),

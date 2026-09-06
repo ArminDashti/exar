@@ -8,7 +8,12 @@ REST API reference for the Daily Expenses backend. All routes are prefixed with 
 
 **Errors:** Failed requests return JSON `{"error": "<message>"}` with an appropriate HTTP status code.
 
-There is no authentication. Anyone who can reach the server can call these endpoints.
+**Authentication:** JWT. Call `POST /api/auth/login` with `{ "username", "password" }`, then send `Authorization: Bearer <token>` on all other routes.
+
+| Username | Password | Person ID |
+|----------|----------|-----------|
+| `armin` | `dopadopa123` | 1 |
+| `ramin` | `noshabe` | 2 |
 
 Dates in the API and database are Gregorian `YYYY-MM-DD`. The web UI displays Jalali dates.
 

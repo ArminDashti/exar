@@ -20,8 +20,8 @@ type user struct {
 }
 
 type Claims struct {
-	Username  string `json:"username"`
-	PersonID  int    `json:"person_id"`
+	Username string `json:"username"`
+	PersonID int    `json:"person_id"`
 	jwt.RegisteredClaims
 }
 

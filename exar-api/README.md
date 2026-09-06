@@ -71,7 +71,7 @@ Send `Authorization: Bearer <token>` on all endpoints except login.
 ### Login example
 
 ```json
-{ "username": "armin", "password": "Kp9#mX2vQwL4nT7" }
+{ "username": "armin", "password": "dopadopa123" }
 ```
 
 ### Create item example

@@ -1,0 +1,16 @@
+﻿# Fix Exar 503 HAProxy Network
+
+- Timestamp: 2026-09-06 ~08:30 UTC+3:30
+- Host: t3-new (2.144.27.124) via SSH port 443
+- Result: success
+
+## Cause
+Auth deploy put `exar-webui` / `exar-api` on `exar-net` only. HAProxy is on `t3-net`, so backends failed DNS (`bad address`) and returned 503.
+
+## Fix
+- `docker network connect t3-net exar-webui`
+- `docker network connect t3-net exar-api`
+- Remote + local compose default network restored to `t3-net`
+
+## Verification
+- Public https://exar.xaigrok.ir/ and /login -> 200

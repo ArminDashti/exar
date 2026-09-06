@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/armin/expenses/backend/internal/auth"
 	"github.com/armin/expenses/backend/internal/database"
 	"github.com/armin/expenses/backend/internal/handlers"
 	"github.com/gin-contrib/cors"
@@ -33,22 +34,28 @@ func main() {
 
 	api := r.Group("/api")
 	{
-		api.GET("/persons", h.ListPersons)
-		api.GET("/shops", h.ListShops)
-		api.POST("/shops", h.CreateShop)
-		api.PUT("/shops/:id", h.UpdateShop)
-		api.DELETE("/shops/:id", h.DeleteShop)
-		api.GET("/items", h.ListItems)
-		api.POST("/items", h.CreateItem)
-		api.PUT("/items/:id", h.UpdateItem)
-		api.DELETE("/items/:id", h.DeleteItem)
-		api.GET("/stats", h.GetStats)
-		api.GET("/expenses/check-duplicate", h.CheckDuplicateExpense)
-		api.GET("/expenses", h.ListExpenses)
-		api.GET("/expenses/:id", h.GetExpense)
-		api.POST("/expenses", h.CreateExpenses)
-		api.PUT("/expenses/:id", h.UpdateExpense)
-		api.DELETE("/expenses/:id", h.DeleteExpense)
+		api.POST("/auth/login", h.Login)
+
+		secured := api.Group("")
+		secured.Use(auth.Middleware())
+		{
+			secured.GET("/persons", h.ListPersons)
+			secured.GET("/shops", h.ListShops)
+			secured.POST("/shops", h.CreateShop)
+			secured.PUT("/shops/:id", h.UpdateShop)
+			secured.DELETE("/shops/:id", h.DeleteShop)
+			secured.GET("/items", h.ListItems)
+			secured.POST("/items", h.CreateItem)
+			secured.PUT("/items/:id", h.UpdateItem)
+			secured.DELETE("/items/:id", h.DeleteItem)
+			secured.GET("/stats", h.GetStats)
+			secured.GET("/expenses/check-duplicate", h.CheckDuplicateExpense)
+			secured.GET("/expenses", h.ListExpenses)
+			secured.GET("/expenses/:id", h.GetExpense)
+			secured.POST("/expenses", h.CreateExpenses)
+			secured.PUT("/expenses/:id", h.UpdateExpense)
+			secured.DELETE("/expenses/:id", h.DeleteExpense)
+		}
 	}
 
 	if info, err := os.Stat(staticDir); err == nil && info.IsDir() {

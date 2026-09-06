@@ -35,7 +35,7 @@ services:
 
 networks:
   appnet:
-    name: ${DOCKER_NETWORK:-exar-net}
+    name: ${DOCKER_NETWORK:-t3-net}
     external: true
 
 volumes:

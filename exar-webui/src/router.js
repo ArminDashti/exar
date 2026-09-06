@@ -5,8 +5,11 @@ import ExpenseListView from './views/ExpenseListView.vue'
 import ShopsView from './views/ShopsView.vue'
 import ItemsView from './views/ItemsView.vue'
 import StatsView from './views/StatsView.vue'
+import LoginView from './views/LoginView.vue'
+import { clearSession, isAuthenticated } from './auth'
 
 const routes = [
+  { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
   { path: '/', redirect: '/expenses/list' },
   {
     path: '/expenses',
@@ -28,3 +31,21 @@ export const router = createRouter({
   linkActiveClass: 'text-sky-400',
   linkExactActiveClass: 'text-sky-400',
 })
+
+router.beforeEach((to) => {
+  if (to.meta.public) {
+    if (to.name === 'login' && isAuthenticated()) {
+      return { path: '/expenses/list' }
+    }
+    return true
+  }
+  if (!isAuthenticated()) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+  return true
+})
+
+export function logoutAndRedirect() {
+  clearSession()
+  return router.push({ name: 'login' })
+}

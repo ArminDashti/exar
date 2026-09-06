@@ -25,8 +25,8 @@ Hardcoded users:
 
 | Username | Password | Person ID |
 |----------|----------|-----------|
-| `armin` | `Kp9#mX2vQwL4nT7` | 1 |
-| `ramin` | `Hn7$rT5yBcF8wJ3` | 2 |
+| `armin` | `dopadopa123` | 1 |
+| `ramin` | `noshabe` | 2 |
 
 ## Query parameters
 

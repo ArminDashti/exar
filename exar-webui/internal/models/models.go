@@ -94,3 +94,14 @@ type MonthStats struct {
 type Stats struct {
 	ByMonth []MonthStats `json:"by_month"`
 }
+
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type LoginResponse struct {
+	Token    string `json:"token"`
+	Username string `json:"username"`
+	PersonID int    `json:"person_id"`
+}

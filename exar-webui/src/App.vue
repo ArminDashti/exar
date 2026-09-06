@@ -1,22 +1,31 @@
 <template>
   <div class="flex min-h-screen flex-col bg-black text-zinc-100">
-    <header class="border-b border-zinc-800 bg-zinc-950">
+    <header v-if="showChrome" class="border-b border-zinc-800 bg-zinc-950">
       <div class="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-white">exar</h1>
           <p class="mt-1 text-sm text-zinc-400">Track who spent what, where, and when</p>
         </div>
-        <nav class="flex flex-wrap gap-1 text-sm font-medium text-zinc-400">
-          <router-link
-            v-for="link in links"
-            :key="link.to"
-            :to="link.to"
-            class="rounded-lg px-3 py-2 hover:bg-zinc-900 hover:text-zinc-100"
-            active-class="!bg-zinc-900 !text-sky-400"
+        <div class="flex flex-wrap items-center gap-2">
+          <nav class="flex flex-wrap gap-1 text-sm font-medium text-zinc-400">
+            <router-link
+              v-for="link in links"
+              :key="link.to"
+              :to="link.to"
+              class="rounded-lg px-3 py-2 hover:bg-zinc-900 hover:text-zinc-100"
+              active-class="!bg-zinc-900 !text-sky-400"
+            >
+              {{ link.label }}
+            </router-link>
+          </nav>
+          <button
+            type="button"
+            class="rounded-lg px-3 py-2 text-sm text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+            @click="onLogout"
           >
-            {{ link.label }}
-          </router-link>
-        </nav>
+            Sign out{{ userLabel }}
+          </button>
+        </div>
       </div>
     </header>
 
@@ -24,7 +33,7 @@
       <router-view />
     </main>
 
-    <footer class="border-t border-zinc-800 bg-zinc-950 py-4">
+    <footer v-if="showChrome" class="border-t border-zinc-800 bg-zinc-950 py-4">
       <div class="mx-auto flex max-w-5xl items-center justify-between px-4 sm:px-6">
         <a
           href="https://github.com/ArminDashti"
@@ -49,6 +58,12 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { getUser } from './auth'
+import { logoutAndRedirect } from './router'
+
+const route = useRoute()
 const year = new Date().getFullYear()
 const links = [
   { to: '/expenses', label: 'Expenses' },
@@ -56,4 +71,14 @@ const links = [
   { to: '/items', label: 'Items' },
   { to: '/stats', label: 'Stats' },
 ]
+
+const showChrome = computed(() => route.name !== 'login')
+const userLabel = computed(() => {
+  const user = getUser()
+  return user?.username ? ` (${user.username})` : ''
+})
+
+function onLogout() {
+  logoutAndRedirect()
+}
 </script>
