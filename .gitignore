@@ -2,3 +2,5 @@
 
 # Auto-managed large files (>5MB)
 exar-webui/node_modules/@esbuild/win32-x64/esbuild.exe
+
+# AUTO-LARGE-FILES (>5MB) — managed by commit-push-to-github
